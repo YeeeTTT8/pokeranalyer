@@ -32,22 +32,45 @@ Minimal-input flow for use between actions at the table:
   (greedy largest-debtor/creditor) algorithm, not naive pairwise settling.
 - Session history by date.
 
+### 📊 Reports
+
+- All-time totals: total buy-in, total cash-out, net across every session.
+- **All-time leaderboard** ranking players by net profit/loss (players matched by
+  name, case-insensitive).
+- **Per-session breakdown** — expand any past session to re-check each player's
+  buy-in / cash-out / net, anytime after the fact.
+- Auto-updates as sessions are added; **CSV export** for spreadsheets, plus JSON
+  backup/restore.
+
 ### 📓 Hand Log (optional)
 
 Save a hand (hole cards, board, equity, result, notes) for later review. Entirely
 separate from — and not required by — the analyzer.
 
-## The math is tested
+## Persistence & sync
 
-The equity engine, evaluator, pot-odds and settlement logic are pure ES modules
-with a Node test suite that checks the evaluator's hand rankings and the Monte
-Carlo output against known all-in equities (e.g. AA vs KK ≈ 82.4%, AKs vs QQ ≈ 46.2%).
+- **Default:** localStorage — zero setup, data lives in one browser.
+- **Optional cross-device sync:** Supabase (free tier) with email magic-link login
+  and Row Level Security. When `VITE_SUPABASE_URL` + `VITE_SUPABASE_ANON_KEY` are
+  set at build time the app switches to synced mode; otherwise it stays local. See
+  **[SUPABASE_SETUP.md](./SUPABASE_SETUP.md)** for click-by-click setup.
+- On first sign-in the app auto-imports this browser's localStorage data; a
+  **JSON export/import** (Reports tab) is the reliable path when moving between
+  different sites/origins.
+- The hosted Artifact preview is always localStorage-only — sandboxed artifact
+  pages can't reach Supabase.
+
+## The math (and data layer) are tested
+
+Pure ES modules with Node test suites: the evaluator's hand rankings and Monte
+Carlo output vs known all-in equities (AA vs KK ≈ 82.4%, AKs vs QQ ≈ 46.2%), plus
+reports aggregation, CSV, row mappers, and the migration importer.
 
 ```bash
 npm install
-npm run test:engine   # correctness checks
+npm test              # engine + data-layer correctness checks
 npm run dev           # local dev server
-npm run build         # production build
+npm run build         # production build (reads VITE_SUPABASE_* if present)
 ```
 
 ## Notes / limitations

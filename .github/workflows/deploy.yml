@@ -24,8 +24,13 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run test:engine
+      - run: npm test
       - run: npm run build
+        env:
+          # Set these in the repo: Settings → Secrets and variables → Actions.
+          # Without them the site still builds and works in localStorage-only mode.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

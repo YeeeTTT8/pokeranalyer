@@ -1,35 +1,23 @@
 import { useMemo, useState } from 'react';
-import { useLocalStorage } from '../hooks/useLocalStorage.js';
+import { useData } from '../data/store.jsx';
 import { computeBalances, settle } from '../poker/settlement.js';
 
 const uid = () => Math.random().toString(36).slice(2, 10);
-const todayISO = () => new Date().toISOString().slice(0, 10);
 const money = (n) => (Math.round(n * 100) / 100).toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 export default function BuyInTracker() {
-  const [sessions, setSessions] = useLocalStorage('pa_sessions', []);
+  const { sessions, createSession, updateSession, deleteSession } = useData();
   const [activeId, setActiveId] = useState(null);
 
   const active = sessions.find((s) => s.id === activeId) || null;
 
-  const createSession = () => {
-    const s = {
-      id: uid(),
-      date: todayISO(),
-      name: '',
-      defaultBuyIn: 20,
-      players: [],
-      createdAt: Date.now(),
-    };
-    setSessions([s, ...sessions]);
+  const startSession = () => {
+    const s = createSession();
     setActiveId(s.id);
   };
 
-  const updateSession = (id, patch) =>
-    setSessions(sessions.map((s) => (s.id === id ? { ...s, ...patch } : s)));
-
-  const deleteSession = (id) => {
-    setSessions(sessions.filter((s) => s.id !== id));
+  const removeSession = (id) => {
+    deleteSession(id);
     if (activeId === id) setActiveId(null);
   };
 
@@ -39,7 +27,7 @@ export default function BuyInTracker() {
         session={active}
         onBack={() => setActiveId(null)}
         onChange={(patch) => updateSession(active.id, patch)}
-        onDelete={() => deleteSession(active.id)}
+        onDelete={() => removeSession(active.id)}
       />
     );
   }
@@ -49,7 +37,7 @@ export default function BuyInTracker() {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">Sessions</h2>
         <button
-          onClick={createSession}
+          onClick={startSession}
           className="rounded-xl bg-emerald-500 text-felt-900 font-semibold px-4 py-2 active:scale-95"
         >
           + New session
